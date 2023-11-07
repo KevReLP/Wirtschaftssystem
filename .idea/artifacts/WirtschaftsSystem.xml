@@ -2,7 +2,7 @@
   <artifact type="jar" name="WirtschaftsSystem">
     <output-path>$PROJECT_DIR$/server/plugins</output-path>
     <root id="archive" name="WirtschaftsSystem.jar">
-      <element id="module-output" name="Wirtschaftssystem" />
+      <element id="module-output" name="WirtschaftsSystem" />
     </root>
   </artifact>
 </component>
