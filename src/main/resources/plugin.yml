@@ -1,0 +1,4 @@
+name: Wirtschaftssystem
+version: '${project.version}'
+main: de.kevrecraft.wirtschaftssystem.Wirtschaftssystem
+api-version: '1.20'
