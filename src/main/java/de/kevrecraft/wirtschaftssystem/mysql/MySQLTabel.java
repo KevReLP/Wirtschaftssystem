@@ -23,7 +23,7 @@ public class MySQLTabel {
     }
 
     public void createTabel() {
-        String sql = "CREATE TABEL IF NOT EXISTS " + name + "(";
+        String sql = "CREATE TABLE IF NOT EXISTS " + name + "(";
         for (String colum : colums.keySet()) {
             sql += colum + " " + colums.get(colum).toSQL() + ",";
         }
@@ -62,22 +62,19 @@ public class MySQLTabel {
         }
         if(exits(condition)) {
              try {
-                 PreparedStatement ps = connection.getConnection().prepareStatement("update ? set ?=? where ?=?");
-                 ps.setString(1, this.name);
-                 ps.setString(2, columName);
-                 ps.setObject(3, objects);
-                 ps.setString(4, condition.columName);
-                 ps.setString(5, condition.value);
+                 String sql = "update " + this.name + " set " + columName + "=? where " + condition.columName + "=?";
+                 PreparedStatement ps = connection.getConnection().prepareStatement(sql);
+                 ps.setObject(1, objects);
+                 ps.setString(2, condition.value);
                  ps.executeUpdate();
              } catch (SQLException e) {
                  throw new RuntimeException(e);
              }
         } else {
             try {
-                PreparedStatement ps = connection.getConnection().prepareStatement("insert into ? ? values (?)");
-                ps.setString(1, this.name);
-                ps.setString(2, columName);
-                ps.setObject(3, objects);
+                String sql = "insert into " + this.name + " ("  + columName + ") values (?)";
+                PreparedStatement ps = connection.getConnection().prepareStatement(sql);
+                ps.setObject(1, objects);
                 ps.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -87,10 +84,9 @@ public class MySQLTabel {
 
     public void remove(Condition condition) {
         try {
-            PreparedStatement ps = connection.getConnection().prepareStatement("delete from ? where ?=?");
-            ps.setString(1, this.name);
-            ps.setString(2, condition.columName);
-            ps.setString(3, condition.value);
+            String sql = "delete from " + this.name + " where " + condition.columName + "=?";
+            PreparedStatement ps = connection.getConnection().prepareStatement(sql);
+            ps.setString(1, condition.value);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -98,11 +94,9 @@ public class MySQLTabel {
 
     private PreparedStatement select(String columName, Condition condition) {
         try {
-            PreparedStatement ps = connection.getConnection().prepareStatement("select ? from ? where ?=?");
-            ps.setString(1, columName);
-            ps.setString(2, this.name);
-            ps.setString(3, condition.columName);
-            ps.setString(4, condition.value);
+            String sql = "select " + columName +" from " + this.name +" where " + condition.columName + "=?";
+            PreparedStatement ps = connection.getConnection().prepareStatement(sql);
+            ps.setString(1, condition.value);
             return ps;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -148,11 +142,9 @@ public class MySQLTabel {
 
     public boolean exits(Condition condition) {
         try {
-            PreparedStatement ps = connection.getConnection().prepareStatement("select ? from ? where ?=?");
-            ps.setString(1, condition.columName);
-            ps.setString(2, this.name);
-            ps.setString(3, condition.columName);
-            ps.setString(4, condition.value);
+            String sql = "select " + condition.columName +" from " + this.name +" where " + condition.columName + "=?";
+            PreparedStatement ps = connection.getConnection().prepareStatement(sql);
+            ps.setString(1, condition.value);
             ResultSet rs = ps.executeQuery();
             return rs.next();
         } catch (SQLException e) {
