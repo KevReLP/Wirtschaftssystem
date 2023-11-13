@@ -55,7 +55,7 @@ public class MySQLTabel {
         }
     }
 
-    public void set(String columName, Objects objects, Condition condition) {
+    public void set(String columName, Object objects, Condition condition) {
         if(objects == null) {
             remove(condition);
             return;
