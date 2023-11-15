@@ -1,6 +1,7 @@
 package de.kevrecraft.wirtschaftssystem;
 
 import de.kevrecraft.wirtschaftssystem.commands.MoneyCommand;
+import de.kevrecraft.wirtschaftssystem.items.MoneyItem;
 import de.kevrecraft.wirtschaftssystem.managers.MoneyManager;
 import de.kevrecraft.wirtschaftssystem.mysql.MySQLConnection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,6 +18,8 @@ public final class Wirtschaftssystem extends JavaPlugin {
         moneyManager = new MoneyManager(this);
 
         getCommand("money").setExecutor(new MoneyCommand(this));
+
+        new MoneyItem(this);
     }
 
     @Override
