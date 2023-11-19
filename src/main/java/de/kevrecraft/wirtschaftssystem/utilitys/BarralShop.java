@@ -9,6 +9,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
@@ -41,27 +42,39 @@ public class BarralShop {
     }
 
     public void setAmount(int amount) {
+        if(amount > 1)
+            amount = 1;
         this.amount = amount;
     }
 
     public void setSell(int amount) {
+        if(amount > 0)
+            amount = -1;
         this.sell = amount;
     }
 
     public void setBuy(int amount) {
+        if(amount > 0)
+            amount = -1;
         this.sell = amount;
     }
 
     public void buy(Player player) {
-        if(this.buy > -1)
+        if(this.buy == -1)
             return;
         UUID uuid = player.getUniqueId();
-        if(MoneyManager.get(uuid) < this.amount) {
+        if(MoneyManager.get(uuid) < this.buy) {
             player.sendMessage(ChatColor.RED + "Du hast nicht genug Geld!");
             return;
         }
-        if(take() == null) {
+        ItemStack item = take(barrel.getInventory());
+        if(item == null) {
             player.sendMessage(ChatColor.RED + "Der Shop hat keine Items mehr!");
+            return;
+        }
+        if(!give(player.getInventory(), item)) {
+            player.sendMessage(ChatColor.RED + "Du hast nicht genug Platz in deinem Inventar!");
+            barrel.getInventory().addItem(item);
             return;
         }
         MoneyManager.set(uuid, MoneyManager.get(uuid) - this.buy);
@@ -69,8 +82,40 @@ public class BarralShop {
         player.sendMessage(ChatColor.GREEN + "Du hast das Item gekauft.");
     }
 
-    private ItemStack take() {
-        for(ItemStack item : barrel.getInventory()) {
+    public void sell(Player player) {
+        if(this.sell == -1)
+            return;
+        UUID uuid = player.getUniqueId();
+        if(MoneyManager.get(owner) < this.sell) {
+            player.sendMessage(ChatColor.RED + "Der Shop Owner hat nicht genug Geld!");
+            return;
+        }
+        ItemStack item = take(player.getInventory());
+        if(item == null) {
+            player.sendMessage(ChatColor.RED + "Du hast nicht genug Items!");
+            return;
+        }
+        if(!give(barrel.getInventory(), item)) {
+            player.sendMessage(ChatColor.RED + "Das Fass hat nicht genug Platz!");
+            player.getInventory().addItem(item);
+            return;
+        }
+        MoneyManager.set(uuid, MoneyManager.get(uuid) + this.buy);
+        MoneyManager.set(owner, MoneyManager.get(owner) - this.buy);
+        player.sendMessage(ChatColor.GREEN + "Du hast das Item verkauft.");
+    }
+
+
+    private boolean give(Inventory inventory, ItemStack item) {
+        if(inventory.contains(Material.AIR)) {
+            inventory.addItem(item);
+            return true;
+        }
+        return false;
+    }
+
+    private ItemStack take(Inventory inventory) {
+        for(ItemStack item : inventory) {
             if(item.getType().equals(this.type)) {
                 if(item.getAmount() >= this.amount) {
                     ItemStack itemStack = item.clone();
@@ -85,6 +130,7 @@ public class BarralShop {
 
     public void save(YamlConfiguration config, int id) {
         config.set(id + ".sign", sign.getLocation());
+        config.set(id + ".barrel", barrel.getLocation());
         config.set(id + ".owner", owner.toString());
         config.set(id + ".amount", amount);
         config.set(id + ".sell", sell);
@@ -93,7 +139,7 @@ public class BarralShop {
     }
 
     private void setSide(Sign sign, Side side) {
-        sign.getSide(side).setLine(0, ChatColor.BOLD + Bukkit.getPlayer(this.owner).getName());
+        sign.getSide(side).setLine(0, ChatColor.BOLD + Bukkit.getOfflinePlayer(this.owner).getName());
         sign.getSide(side).setLine(1, this.amount + "");
         if(this.sell == -1 && this.buy == -1)
             sign.getSide(side).setLine(2, ChatColor.DARK_RED + "CLOSED");
@@ -116,6 +162,11 @@ public class BarralShop {
         if(sign == null) {
             return null;
         }
+        Barrel barrel = (Barrel) config.getLocation(id + ".barrel").getBlock().getState();
+        if(barrel == null) {
+            return null;
+        }
+
         sign.setWaxed(true);
         UUID owner = UUID.fromString(config.getString(id + ".owner"));
         int amount = config.getInt(id + ".amount");
