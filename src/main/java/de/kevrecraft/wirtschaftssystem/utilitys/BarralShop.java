@@ -39,6 +39,10 @@ public class BarralShop {
         this.type = type;
         this.buy = -1;
         this.sell = -1;
+        setSide(sign, Side.FRONT);
+        setSide(sign, Side.BACK);
+        sign.update(true);
+        sign.setWaxed(true);
     }
 
     public void setAmount(int amount) {
