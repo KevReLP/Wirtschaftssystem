@@ -3,6 +3,7 @@ package de.kevrecraft.wirtschaftssystem.utilitys;
 import de.kevrecraft.wirtschaftssystem.managers.MoneyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Sign;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public class BarralShop {
@@ -39,28 +41,43 @@ public class BarralShop {
         this.type = type;
         this.buy = -1;
         this.sell = -1;
+    }
+
+    public void update() {
         setSide(sign, Side.FRONT);
         setSide(sign, Side.BACK);
         sign.update(true);
         sign.setWaxed(true);
     }
 
+    public Location getLocation() {
+        return this.sign.getLocation();
+    }
+
+    public Location getBarrelLocation() {
+        return this.barrel.getLocation();
+    }
+
+    public UUID getOwner() {
+        return this.owner;
+    }
+
     public void setAmount(int amount) {
-        if(amount > 1)
+        if(amount < 1)
             amount = 1;
         this.amount = amount;
     }
 
     public void setSell(int amount) {
-        if(amount > 0)
+        if(amount < 0)
             amount = -1;
         this.sell = amount;
     }
 
     public void setBuy(int amount) {
-        if(amount > 0)
+        if(amount < 0)
             amount = -1;
-        this.sell = amount;
+        this.buy = amount;
     }
 
     public void buy(Player player) {
@@ -111,7 +128,7 @@ public class BarralShop {
 
 
     private boolean give(Inventory inventory, ItemStack item) {
-        if(inventory.contains(Material.AIR)) {
+        if(inventory.firstEmpty() != -1) {
             inventory.addItem(item);
             return true;
         }

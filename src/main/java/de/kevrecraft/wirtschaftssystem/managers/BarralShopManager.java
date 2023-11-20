@@ -12,7 +12,9 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +72,29 @@ public class BarralShopManager implements Listener {
         }
     }
 
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if(event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
+            for(BarralShop shop : shops) {
+                if(shop.getLocation().equals(event.getClickedBlock().getLocation())) {
+                    shop.buy(event.getPlayer());
+                    event.setCancelled(true);
+                }
+            }
+        } else if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+            for(BarralShop shop : shops) {
+                if(shop.getLocation().equals(event.getClickedBlock().getLocation())) {
+                    shop.sell(event.getPlayer());
+                    event.setCancelled(true);
+                }
+                if(event.getClickedBlock().getLocation().equals(shop.getBarrelLocation())) {
+                    if(!event.getPlayer().getUniqueId().equals(shop.getOwner())) {
+                        event.setCancelled(true);
+                    }
+                }
+            }
+        }
+    }
 
     @EventHandler
     public void onSignChange(SignChangeEvent event) {
@@ -92,6 +117,20 @@ public class BarralShopManager implements Listener {
                 }
 
                 BarralShop barralShop = new BarralShop((Sign) event.getBlock().getState(), barrel, event.getPlayer().getUniqueId(), amount, material);
+
+
+                if(event.getLine(2).replace(" ", "").contains(":")) {
+                    String[] list = event.getLine(2).split(":");
+                    if(list.length == 2) {
+                        if(Utility.isInt(list[0]) && Utility.isInt(list[1])) {
+                            barralShop.setBuy(Integer.parseInt(list[0]));
+                            barralShop.setSell(Integer.parseInt(list[1]));
+                        }
+                    }
+                } else if (Utility.isInt(event.getLine(2).replace(" ", ""))) {
+                    barralShop.setBuy(Integer.parseInt(event.getLine(2)));
+                }
+                barralShop.update();
                 shops.add(barralShop);
                 event.setCancelled(true);
             }
